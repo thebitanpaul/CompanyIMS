@@ -12,6 +12,17 @@ def create_connection(db_file):
         print(e)
     return conn
 
+# Function to retrieve all data from the database
+def fetch_all_data(conn):
+    try:
+        c = conn.cursor()
+        c.execute("SELECT * FROM companies")
+        rows = c.fetchall()
+        return rows
+    except sqlite3.Error as e:
+        print(e)
+        return None
+
 # Function to create a table in the database
 def create_table(conn):
     try:
@@ -138,6 +149,8 @@ def delete_data(conn, company_name):
 def main():
     st.title("Company IMS App")
 
+    tab1, tab2 = st.tabs(["Search", "All Companies"])
+
     # Create a database connection
     conn = create_connection("company_data.db")
     if conn is not None:
@@ -167,33 +180,45 @@ def main():
                 else:
                     insert_data(conn, company_name, communication, legal_info, activity, presentation, general_info, remarks)
                     st.success("Data inserted successfully!")
-
-        # Search for company data
-        search_name = st.text_input("Enter Company Name").lower()
-
-        if st.button("Search", key="search"):
-            result = search_data(conn, search_name)
-            if result:
-                st.write("Company Data:")
-                for row in result:
-                    data = {
-                        "Company Name": row[1],
-                        "Communication": row[2],
-                        "Legal Information": row[3],
-                        "Activity": row[4],
-                        "Presentation": row[5],
-                        "General Information": row[6],
-                        "Remarks": row[7]
-                        }
-                    st.table(data)
-            else:
-                st.warning("No data found for the given company name.")
-
-        if search_name:
-            # Delete company data
-            if st.button("Delete Data", key="delete"):
-                delete_data(conn, search_name)
         
+        with tab1:
+            # Search for company data
+            search_name = st.text_input("Enter Company Name").lower()
+
+            if st.button("Search", key="search"):
+                result = search_data(conn, search_name)
+                if result:
+                    st.write("Company Data:")
+                    for row in result:
+                        data = {
+                            "Company Name": row[1],
+                            "Communication": row[2],
+                            "Legal Information": row[3],
+                            "Activity": row[4],
+                            "Presentation": row[5],
+                            "General Information": row[6],
+                            "Remarks": row[7]
+                            }
+                        st.table(data)
+                else:
+                    st.warning("No data found for the given company name.")
+
+            if search_name:
+                # Delete company data
+                if st.button("Delete Data", key="delete"):
+                    delete_data(conn, search_name)
+
+        with tab2:
+            # Fetch all company data
+            all_data = fetch_all_data(conn)
+            if all_data:
+                # Create a DataFrame from the fetched data
+                df = pd.DataFrame(all_data, columns=["ID", "Company Name", "Communication", "Legal Information", "Activity", "Presentation", "General Information", "Remarks"])
+                st.write("All Companies Data:")
+                st.dataframe(df)
+            else:
+                st.write("No data found in the table.")
+
         # Allow users to upload Excel file
         uploaded_file = st.sidebar.file_uploader("Choose an Excel file", type=["xlsx", "xls"])
 
