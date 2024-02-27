@@ -172,32 +172,28 @@ def main():
         search_name = st.text_input("Enter Company Name").lower()
 
         if st.button("Search", key="search"):
-            if not search_name:
-                st.warning("Please enter a company name.")
-                return
-            elif search_name:
-                result = search_data(conn, search_name)
-                if result:
-                    st.write("Company Data:")
-                    for row in result:
-                        data = {
-                            "Company Name": row[1],
-                            "Communication": row[2],
-                            "Legal Information": row[3],
-                            "Activity": row[4],
-                            "Presentation": row[5],
-                            "General Information": row[6],
-                            "Remarks": row[7]
+            result = search_data(conn, search_name)
+            if result:
+                st.write("Company Data:")
+                for row in result:
+                    data = {
+                        "Company Name": row[1],
+                        "Communication": row[2],
+                        "Legal Information": row[3],
+                        "Activity": row[4],
+                        "Presentation": row[5],
+                        "General Information": row[6],
+                        "Remarks": row[7]
                         }
-                        st.table(data)
-                else:
-                    st.warning("No data found for the given company name.")
+                    st.table(data)
+            else:
+                st.warning("No data found for the given company name.")
 
-       
-        # Delete company data
-        if st.button("Delete Data", key="delete"):
-            delete_data(conn, search_name)
-
+        if search_name:
+            # Delete company data
+            if st.button("Delete Data", key="delete"):
+                delete_data(conn, search_name)
+        
         # Allow users to upload Excel file
         uploaded_file = st.sidebar.file_uploader("Choose an Excel file", type=["xlsx", "xls"])
 
